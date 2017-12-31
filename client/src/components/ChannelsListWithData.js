@@ -1,4 +1,6 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+
 import { gql, graphql } from 'react-apollo';
 
 import AddChannel from './AddChannel';
@@ -15,9 +17,8 @@ const ChannelsList = ({ data: { loading, error, channels } }) => {
 		<div className="channelsList">
 			<AddChannel />
 			{channels.map(ch => (
-				// part.4
 				<div key={ch.id} className={'channel ' + (ch.id < 0 ? 'optimistic' : '')}>
-					{ch.name}
+					<Link to={ch.id < 0 ? `/` : `channel/${ch.id}`}>{ch.name}</Link>
 				</div>
 			))}
 		</div>
