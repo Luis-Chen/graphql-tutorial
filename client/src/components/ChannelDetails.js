@@ -19,10 +19,12 @@ class ChannelDetails extends Component {
 				const newMessage = subscriptionData.data.messageAdded;
 
 				// don't double add the message
-				if (!prev.channel.messages.find(msg => msg.id === newMessage.id)) {
+				if (!prev.channel.messageFeed.messages.find(msg => msg.id === newMessage.id)) {
 					return Object.assign({}, prev, {
 						channel: Object.assign({}, prev.channel, {
-							messages: [...prev.channel.messages, newMessage]
+							messageFeed: {
+								messages: [...prev.channel.messageFeed.messages, newMessage]
+							}
 						})
 					});
 				} else {
@@ -45,11 +47,9 @@ class ChannelDetails extends Component {
 		}
 		return (
 			<div>
+				<div className="channelName">{channel.name}</div>
 				<button onClick={loadOlderMessages}>Load Older Messages</button>
-				<div>
-					<div className="channelName">{channel.name}</div>
-					<MessageList messages={channel.messageFeed.messages} />
-				</div>
+				<MessageList messages={channel.messageFeed.messages} />
 			</div>
 		);
 	}
@@ -99,7 +99,6 @@ export default graphql(channelDetailsQuery, {
 					updateQuery(previousResult, { fetchMoreResult }) {
 						const prevMessageFeed = previousResult.channel.messageFeed;
 						const newMessageFeed = fetchMoreResult.channel.messageFeed;
-
 						const newChannelData = {
 							...previousResult.channel,
 							messageFeed: {
@@ -107,9 +106,10 @@ export default graphql(channelDetailsQuery, {
 								cursor: newMessageFeed.cursor
 							}
 						};
-
-						const newData = { ...previousResult, channel: newChannelData };
-
+						const newData = {
+							...previousResult,
+							channel: newChannelData
+						};
 						return newData;
 					}
 				});

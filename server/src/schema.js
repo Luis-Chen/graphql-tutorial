@@ -6,7 +6,10 @@ const typeDefs = `
 type Channel {
   id: ID!                # "!" denotes a required field
   name: String
-  messages: [Message]!
+  messages: [Message]
+
+  # messages will be returned in a MessageFeed object wrapper
+  messageFeed(cursor: String): MessageFeed
 }
 
 input MessageInput{
@@ -17,6 +20,15 @@ input MessageInput{
 type Message {
   id: ID!
   text: String
+  createdAt: Int
+}
+
+type MessageFeed {
+  # cursor specifies the place in the list where we left off
+  cursor: String!
+
+  # this is a chunk of messages to be returned
+  messages: [Message]!
 }
 
 # This type specifies the entry points into our API
@@ -30,6 +42,8 @@ type Mutation {
   addChannel(name: String!): Channel
   addMessage(message: MessageInput!): Message
 }
+
+# The subscription root type, specifying what we can subscribe to
 type Subscription {
   messageAdded(channelId: ID!): Message
 }
