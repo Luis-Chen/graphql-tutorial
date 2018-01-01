@@ -1,3 +1,6 @@
+import { PubSub } from 'graphql-subscriptions';
+import { withFilter } from 'graphql-subscriptions';
+
 const channels = [
 	{
 		id: '1',
@@ -31,6 +34,8 @@ const channels = [
 let nextId = 3;
 let nextMessageId = 5;
 
+const pubsub = new PubSub();
+
 export const resolvers = {
 	Query: {
 		channels: () => {
@@ -52,7 +57,22 @@ export const resolvers = {
 
 			const newMessage = { id: String(nextMessageId++), text: message.text };
 			channel.messages.push(newMessage);
+
+			pubsub.publish('messageAdded', { messageAdded: newMessage, channelId: message.channelId });
+
 			return newMessage;
+		}
+	},
+	Subscription: {
+		messageAdded: {
+			subscribe: withFilter(
+				() => pubsub.asyncIterator('messageAdded'),
+				(payload, variables) => {
+					// The `messageAdded` channel includes events for all channels, so we filter to only
+					// pass through events for the channel specified in the query
+					return payload.channelId === variables.channelId;
+				}
+			)
 		}
 	}
 };
